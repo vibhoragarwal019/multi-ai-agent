@@ -7,3 +7,4 @@ fastapi
 pydantic
 streamlit
 langgraph
+slowapi

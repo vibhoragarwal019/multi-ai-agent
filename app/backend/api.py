@@ -2,6 +2,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from app.common.custom_exception import CustomException
 from app.core.ai_agent import get_response_from_ai_agents
 from app.config.settings import settings
@@ -9,6 +11,8 @@ from app.common.logger import get_logger
 
 logger = get_logger(__name__)
 app = FastAPI(title="Multi Agent API", version="0.1")
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
 
 @app.get("/")
 def root():
@@ -25,6 +29,7 @@ class RequestState(BaseModel):
     allow_search: bool
 
 @app.post("/chat")
+@limiter.limit("10/minute")
 def chat_endpoint(request:RequestState):
     logger.info(f"Received request for model: {request.model_name}")
 
