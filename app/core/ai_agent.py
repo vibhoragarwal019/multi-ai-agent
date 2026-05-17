@@ -22,8 +22,22 @@ def get_response_from_ai_agents(llm_id, query, allow_search, system_prompt):
         for content in query
     ]
     state = {"messages": messages}
-    response = agent.invoke(state)
+
+    try:
+        response = agent.invoke(state)
+    except Exception as e:
+        if allow_search:
+            llm = ChatGroq(model=llm_id)
+            agent = create_agent(
+                model=llm,
+                tools=[],
+                system_prompt=system_prompt
+            )
+            response = agent.invoke(state)
+        else:
+            raise
+
     messages = response.get("messages")
-    ai_messages = [message.content for message in messages if isinstance(message,AIMessage)]
+    ai_messages = [message.content for message in messages if isinstance(message, AIMessage)]
 
     return ai_messages[-1]
