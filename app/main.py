@@ -41,11 +41,15 @@ def run_backend():
 def run_frontend():
     try:
         host = "0.0.0.0"
-        port = int(os.environ.get("PORT", "8501"))
-        local_host = "127.0.0.1"
-        while is_port_in_use(local_host, port):
-            logger.warning(f"Port {port} is already in use; trying next port")
-            port += 1
+        port_env = os.environ.get("PORT")
+        if port_env:
+            port = int(port_env)
+        else:
+            port = 8501
+            local_host = "127.0.0.1"
+            while is_port_in_use(local_host, port):
+                logger.warning(f"Port {port} is already in use; trying next port")
+                port += 1
 
         logger.info(f"Starting Frontend service on port {port}")
         subprocess.run([
