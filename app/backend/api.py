@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from typing import List
@@ -30,22 +30,22 @@ class RequestState(BaseModel):
 
 @app.post("/chat")
 @limiter.limit("10/minute")
-def chat_endpoint(request:RequestState):
-    logger.info(f"Received request for model: {request.model_name}")
+def chat_endpoint(request: Request, chat_request: RequestState):
+    logger.info(f"Received request for model: {chat_request.model_name}")
 
-    if request.model_name not in settings.ALLOWED_MODEL_NAMES:
+    if chat_request.model_name not in settings.ALLOWED_MODEL_NAMES:
         logger.warning("Invalid model name")
         raise HTTPException(status_code=400 , detail="Invalid model name")
     
     try:
         response = get_response_from_ai_agents(
-            request.model_name,
-            request.messages,
-            request.allow_search,
-            request.system_prompt
+            chat_request.model_name,
+            chat_request.messages,
+            chat_request.allow_search,
+            chat_request.system_prompt
         )
 
-        logger.info(f"Sucesfully got response from AI Agent {request.model_name}")
+        logger.info(f"Sucesfully got response from AI Agent {chat_request.model_name}")
 
         return {"response" : response}
     
